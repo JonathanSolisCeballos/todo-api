@@ -10,14 +10,16 @@ import java.io.UnsupportedEncodingException;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.net.URI;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import mx.ucol.models.Todo;
 import mx.ucol.helpers.DBConnection;
 import mx.ucol.helpers.JSON;
+
+import javax.xml.transform.Result;
 
 public class TodosHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
@@ -58,12 +60,28 @@ public class TodosHandler implements HttpHandler {
 
         OutputStream output = exchange.getResponseBody();
 
-        Todo todo = new Todo();
-        todo.setId(1);
-        todo.setTitle("Title Example");
-        todo.setCompleted(false);
+        Connection connection = DBConnection.getInstance();
+        String sql = "SELECT * FROM todos;";
 
-        String json = JSON.objectToJson(todo);
+        List<Todo> todoList = new ArrayList<Todo>();
+
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet result = statement.executeQuery(sql);
+
+            while(result.next()){
+                Todo todo = new Todo();
+                todo.setId(result.getInt("id"));
+                todo.setTitle(result.getString("title"));
+                todo.setCompleted(result.getInt("completed") == 1 ? true : false);
+
+                todoList.add(todo);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error on TodosHandler.java executeUpdate: " + e.getMessage());
+        }
+
+        String json = JSON.objectToJson(todoList);
         byte[] response = json.getBytes();
 
         exchange.sendResponseHeaders(200, response.length);
@@ -91,7 +109,6 @@ public class TodosHandler implements HttpHandler {
         //Get the JSON body of the resonse
         String bodyContent = getBodyContent(input);
 
-//        System.out.println(bodyContent);
         Todo bodyContentTodo  = JSON.jsonToObject(bodyContent);
 
         String bodyContentTodoTitle = bodyContentTodo.getTitle();
@@ -99,9 +116,7 @@ public class TodosHandler implements HttpHandler {
 
         System.out.println(bodyContentTodo.getTitle());
 
-
-
-        // Create the ToDos table if not exists
+        //create the todo
         Connection connection = DBConnection.getInstance();
         String sql = "INSERT INTO todos (title, completed) VALUES(\""+ bodyContentTodoTitle + "\",\" "+ bodyContentTodoCompleted +"\")";
 
@@ -116,18 +131,6 @@ public class TodosHandler implements HttpHandler {
             System.err.println("Error on TodosHandler.java executeUpdate: " + e.getMessage());
         }
 
-
-//        Todo todo = new Todo();
-//        todo.setId(1);
-//        todo.setTitle("Title Example 2");
-//        todo.setCompleted(false);
-//
-
-
-//        String json = JSON.objectToJson(todo);
-//        byte[] response = json.getBytes();
-
-
         exchange.sendResponseHeaders(200,response.length);
         output.write(response);
         output.close();
@@ -141,9 +144,11 @@ public class TodosHandler implements HttpHandler {
          */
 
         OutputStream output = exchange.getResponseBody();
-        byte[] response = "PUT Handler".getBytes();
 
-        exchange.sendResponseHeaders(200, response.length);
+
+
+        byte[] response = "PUT Handler".getBytes();
+        exchange.sendResponseHeaders(200,response.length);
         output.write(response);
         output.close();
     }
@@ -155,13 +160,39 @@ public class TodosHandler implements HttpHandler {
          * entry with :id if exists
          */
 
+        //Get the request body
+        String input = exchange.getRequestURI().toString();
+
+        String[] arrURI = input.split("/");
+        String todoId = arrURI[arrURI.length-1];
+
+        Connection connection = DBConnection.getInstance();
+        String sql = "DELETE FROM todos WHERE id = " + todoId + ";";
+
+//        byte[] response;
+        Todo todo = new Todo();
+        byte[] response;
+
+        try {
+            Statement statement = connection.createStatement();
+            statement.executeUpdate(sql);
+            response = "TO-DO DELETED SUCCESFULLY".getBytes();
+
+        } catch (SQLException e) {
+            response = "ERROR WHILE DELETING TODO".getBytes();
+            System.err.println("Error on TodosHandler.java executeUpdate: " + e.getMessage());
+        }
+
         OutputStream output = exchange.getResponseBody();
-        byte[] response = "DELETE Handler".getBytes();
 
         exchange.sendResponseHeaders(200, response.length);
         output.write(response);
         output.close();
     }
+
+
+
+
 
     private void notSupportedHandler(HttpExchange exchange) throws IOException {
         OutputStream output = exchange.getResponseBody();

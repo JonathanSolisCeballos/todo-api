@@ -1,6 +1,7 @@
 package mx.ucol.helpers;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -23,7 +24,12 @@ public class JSON {
 
         return json;
     }
-//    public static String stringToJson(String plainString) throws JsonParseException, IOException{
-//        Student student = new ObjectMapper().readValue(jsonString, Student.class);
-//    }
+
+    public static String objectToJson(List<Todo> todoList) throws JsonGenerationException, JsonMappingException, IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(todoList);
+
+        return json;
+    }
+
 }
