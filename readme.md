@@ -2,15 +2,17 @@
 # Restful Server of To-do List
 
 This is an resful api made with maven, JAVA and using sqlite as a DB, was made by [Jonathan solis].
+What i have done is to make the postHandler method of the api in order to create new task into the DB,
 
 ## Installation
-In order to build the project, you will need to assemble the dependencies and then package the project into a jar:
+For instalation you need to have maeven and JDK installed, to do so i used homebrew for maeven running the following command:
 
-```mvn package```
+```brew install maven```
 
-Then do
+and for JDK I donwload it in the following url: https://docs.oracle.com/en/java/javase/15/install/installation-jdk-macos.html#GUID-F575EB4A-70D3-4AB4-A20E-DBE95171AB5F
 
-```some other command```
+Then i used intelij to open the proyect and you just have to run the main class.
+
 
 ## Usage
 The API can respond to the following endpoints:
@@ -26,3 +28,11 @@ OR
 ```
 ERROR WHEN ADDING TO-DO
 ```
+
+In order to see the DB I used sqlite3 in terminal, with the folliwing command
+```sqlite resources/todo.db```
+
+
+![ss1](ss1.png)
+![ss2](ss2.png)
+![ss3](ss3.png)
